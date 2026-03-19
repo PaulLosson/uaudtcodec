@@ -142,29 +142,89 @@ UdtHandler(client, node_id, dict_node_id=None, types_cache=None)
 
 **Methods:**
 
-| Method                                  | Returns           | Description                                      |
-|-----------------------------------------|-------------------|--------------------------------------------------|
-| `read(as_dict=False)`                   | `UdtResult`       | Decode all elements from the server              |
-| `read_csv(filepath, as_dict=False)`     | `UdtResult`       | Decode UDT values from a CSV export file         |
-| `write(index, instance=None, data=None)`| —                 | Write a full element (typed object or dict)       |
-| `patch(index, modifications)`           | —                 | Partial update with dot-notation paths            |
-| `edit(index)`                           | context manager   | Decode, yield for modification, re-encode, write |
-| `save_types(filepath)`                  | —                 | Serialize types to JSON file for reuse            |
+#### `read(as_dict=False)` → `UdtResult`
+
+Decode all elements from the server.
+
+| Parameter | Type   | Description                                                        |
+|-----------|--------|--------------------------------------------------------------------|
+| `as_dict` | `bool` | If `True`, return dicts instead of typed objects. Default: `False`  |
+
+#### `read_csv(filepath, as_dict=False)` → `UdtResult`
+
+Decode UDT values from a CSV export file.
+
+| Parameter  | Type   | Description                                                        |
+|------------|--------|--------------------------------------------------------------------|
+| `filepath` | `str`  | Path to the CSV export file to read                                |
+| `as_dict`  | `bool` | If `True`, return dicts instead of typed objects. Default: `False`  |
+
+#### `write(index, instance=None, data=None)`
+
+Write a full element (typed object or dict) at the given index.
+
+| Parameter  | Type           | Description                                                              |
+|------------|----------------|--------------------------------------------------------------------------|
+| `index`    | `int`          | Array index of the element to write                                      |
+| `instance` | object / `None`| Typed instance to write. Mutually exclusive with `data`                  |
+| `data`     | `dict` / `None`| Dictionary of field values to write. Mutually exclusive with `instance`  |
+
+#### `patch(index, modifications)`
+
+Partial update of an element using dot-notation paths.
+
+| Parameter       | Type   | Description                                                                        |
+|-----------------|--------|------------------------------------------------------------------------------------|
+| `index`         | `int`  | Array index of the element to modify                                               |
+| `modifications` | `dict` | Changes to apply, e.g. `{"Name": "New", "SubItems[0].Desc": "Changed"}`           |
+
+#### `edit(index)` → context manager
+
+Decode an element, yield it for in-place modification, then re-encode and write it back.
+
+| Parameter | Type  | Description                          |
+|-----------|-------|--------------------------------------|
+| `index`   | `int` | Array index of the element to edit   |
+
+#### `save_types(filepath)`
+
+Serialize discovered types to a JSON file for later reuse via `types_cache`.
+
+| Parameter  | Type  | Description                    |
+|------------|-------|--------------------------------|
+| `filepath` | `str` | Output JSON file path          |
 
 ### UdtResult
 
 Extends `list`. Returned by `read()` and `read_csv()`. Supports indexing, iteration, `len()`, etc.
 
-| Method                            | Description                                                          |
-|-----------------------------------|----------------------------------------------------------------------|
-| `to_json(filepath, indent=2)`     | Export to JSON file                                                  |
-| `to_csv(filepath, delimiter=';')` | Export to CSV file (nested structures flattened, lists as rows)      |
+#### `to_json(filepath, indent=2)`
+
+Export the results to a JSON file.
+
+| Parameter  | Type  | Description                                    |
+|------------|-------|------------------------------------------------|
+| `filepath` | `str` | Output JSON file path                          |
+| `indent`   | `int` | Number of spaces for JSON indentation. Default: `2` |
+
+#### `to_csv(filepath, delimiter=';')`
+
+Export the results to a CSV file (nested structures flattened, lists as rows).
+
+| Parameter   | Type  | Description                                   |
+|-------------|-------|-----------------------------------------------|
+| `filepath`  | `str` | Output CSV file path                          |
+| `delimiter` | `str` | CSV delimiter character. Default: `';'`       |
 
 ### StructuredTypeParser
 
 ```python
 StructuredTypeParser(dict_value)
 ```
+
+| Parameter    | Type    | Description                                              |
+|--------------|---------|----------------------------------------------------------|
+| `dict_value` | `bytes` | XML content of the OPC-UA type dictionary                |
 
 | Method                         | Returns                                        |
 |--------------------------------|------------------------------------------------|
@@ -178,10 +238,32 @@ StructuredTypeParser(dict_value)
 StructuredTypeUnpacker(structured_types, enumeration_types, verbose=False)
 ```
 
-| Method                                                  | Returns              |
-|---------------------------------------------------------|----------------------|
-| `unpack(name, byte_buffer, offset=0, element_index=None)` | `(instance, offset)` |
-| `unpack_array(name, byte_buffer, offset=0)`             | `(list, offset)`     |
+| Parameter          | Type         | Description                                     |
+|--------------------|--------------|-------------------------------------------------|
+| `structured_types` | `list[dict]` | Parsed structured type definitions               |
+| `enumeration_types`| `list[dict]` | Parsed enumeration type definitions              |
+| `verbose`          | `bool`       | Enable verbose logging. Default: `False`         |
+
+#### `unpack(name, byte_buffer, offset=0, element_index=None)` → `(instance, offset)`
+
+Decode a single structured type from a binary buffer.
+
+| Parameter       | Type          | Description                                               |
+|-----------------|---------------|-----------------------------------------------------------|
+| `name`          | `str`         | Name of the structured type to unpack                     |
+| `byte_buffer`   | `bytes`       | Binary buffer containing the encoded data                 |
+| `offset`        | `int`         | Starting byte offset in the buffer. Default: `0`          |
+| `element_index` | `int` / `None`| Optional index used for array element logging             |
+
+#### `unpack_array(name, byte_buffer, offset=0)` → `(list, offset)`
+
+Decode an array of structured types from a binary buffer.
+
+| Parameter     | Type    | Description                                            |
+|---------------|---------|--------------------------------------------------------|
+| `name`        | `str`   | Name of the structured type for each array element     |
+| `byte_buffer` | `bytes` | Binary buffer containing the encoded array data        |
+| `offset`      | `int`   | Starting byte offset in the buffer. Default: `0`       |
 
 ### StructuredTypeEncoder
 
@@ -189,15 +271,72 @@ StructuredTypeUnpacker(structured_types, enumeration_types, verbose=False)
 StructuredTypeEncoder(structured_types, enumeration_types)
 ```
 
-| Method                                        | Returns          |
-|-----------------------------------------------|------------------|
-| `encode(instance)`                            | `bytes`          |
-| `encode_by_name(type_name, data)`             | `bytes`          |
-| `encode_list(instances)`                      | `list[bytes]`    |
-| `decode(type_name, byte_buffer)`              | typed instance   |
-| `decode_array(type_name, byte_buffer)`        | `list`           |
-| `decode_list(type_name, raw_values)`          | `list`           |
-| `patch(type_name, byte_buffer, modifications)`| `bytes`          |
+| Parameter          | Type         | Description                                     |
+|--------------------|--------------|-------------------------------------------------|
+| `structured_types` | `list[dict]` | Parsed structured type definitions               |
+| `enumeration_types`| `list[dict]` | Parsed enumeration type definitions              |
+
+#### `encode(instance)` → `bytes`
+
+Encode a typed object to binary.
+
+| Parameter  | Type   | Description                                          |
+|------------|--------|------------------------------------------------------|
+| `instance` | object | Typed instance to encode (must have `__type_name__`) |
+
+#### `encode_by_name(type_name, data)` → `bytes`
+
+Encode a dictionary to binary using a type name.
+
+| Parameter   | Type   | Description                              |
+|-------------|--------|------------------------------------------|
+| `type_name` | `str`  | Name of the structured type              |
+| `data`      | `dict` | Dictionary with field values to encode   |
+
+#### `encode_list(instances)` → `list[bytes]`
+
+Encode a list of typed objects to a list of binary blobs.
+
+| Parameter   | Type   | Description                       |
+|-------------|--------|-----------------------------------|
+| `instances` | `list` | List of typed objects to encode   |
+
+#### `decode(type_name, byte_buffer)` → typed instance
+
+Decode a binary buffer into a typed instance.
+
+| Parameter     | Type    | Description                              |
+|---------------|---------|------------------------------------------|
+| `type_name`   | `str`   | Name of the structured type              |
+| `byte_buffer` | `bytes` | Binary buffer to decode                  |
+
+#### `decode_array(type_name, byte_buffer)` → `list`
+
+Decode a binary buffer containing an array of structured types.
+
+| Parameter     | Type    | Description                              |
+|---------------|---------|------------------------------------------|
+| `type_name`   | `str`   | Name of the structured type              |
+| `byte_buffer` | `bytes` | Binary buffer containing array data      |
+
+#### `decode_list(type_name, raw_values)` → `list`
+
+Decode a list of OPC-UA ExtensionObjects or raw bytes.
+
+| Parameter    | Type   | Description                                          |
+|--------------|--------|------------------------------------------------------|
+| `type_name`  | `str`  | Name of the structured type                          |
+| `raw_values` | `list` | List of ExtensionObjects or raw bytes to decode      |
+
+#### `patch(type_name, byte_buffer, modifications)` → `bytes`
+
+Apply partial modifications to an encoded binary buffer.
+
+| Parameter       | Type    | Description                                                    |
+|-----------------|---------|----------------------------------------------------------------|
+| `type_name`     | `str`   | Name of the structured type                                    |
+| `byte_buffer`   | `bytes` | Original encoded binary data                                   |
+| `modifications` | `dict`  | Changes to apply, e.g. `{"Name": "New", "Sub[0].X": 42}`     |
 
 ### Utilities
 
