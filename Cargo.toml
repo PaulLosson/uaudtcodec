@@ -1,0 +1,16 @@
+[workspace]
+resolver = "2"
+members = ["crates/uaudt-core", "crates/uaudt-client"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+authors = ["PaulLosson"]
+repository = "https://github.com/PaulLosson/uaudtcodec"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+

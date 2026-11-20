@@ -22,3 +22,6 @@ CLAUDE.md
 *.csv
 Value.txt
 old/
+
+# Rust
+target/

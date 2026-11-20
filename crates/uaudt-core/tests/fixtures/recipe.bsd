@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:ua="http://opcfoundation.org/UA/"
+                    xmlns:tns="urn:uaudtcodec:demo"
+                    DefaultByteOrder="LittleEndian"
+                    TargetNamespace="urn:uaudtcodec:demo">
+  <opc:Import Namespace="http://opcfoundation.org/UA/" Location="Opc.Ua.BinarySchema.bsd"/>
+  <opc:EnumeratedType Name="Mode" LengthInBits="32">
+    <opc:Documentation>Operating mode</opc:Documentation>
+    <opc:EnumeratedValue Name="Off" Value="0"/>
+    <opc:EnumeratedValue Name="Auto" Value="1"/>
+    <opc:EnumeratedValue Name="Manual" Value="2"/>
+  </opc:EnumeratedType>
+  <opc:StructuredType Name="SubItem" BaseType="ua:ExtensionObject">
+    <opc:Field Name="Id" TypeName="opc:Int32"/>
+    <opc:Field Name="Description" TypeName="opc:String"/>
+    <opc:Field Name="Value" TypeName="opc:Float"/>
+    <opc:Field Name="Active" TypeName="opc:Boolean"/>
+  </opc:StructuredType>
+  <opc:StructuredType Name="Recipe" BaseType="ua:ExtensionObject">
+    <opc:Documentation>A recipe with nested structures and arrays</opc:Documentation>
+    <opc:Field Name="Name" TypeName="opc:String"/>
+    <opc:Field Name="Enabled" TypeName="opc:Boolean"/>
+    <opc:Field Name="Count" TypeName="opc:Int32"/>
+    <opc:Field Name="Mode" TypeName="tns:Mode"/>
+    <opc:Field Name="Created" TypeName="opc:DateTime"/>
+    <opc:Field Name="NoOfSubItems" TypeName="opc:Int32"/>
+    <opc:Field Name="SubItems" TypeName="tns:SubItem" LengthField="NoOfSubItems"/>
+    <opc:Field Name="Origin" TypeName="tns:Point"/>
+    <opc:Field Name="NoOfTags" TypeName="opc:Int32"/>
+    <opc:Field Name="Tags" TypeName="opc:String" LengthField="NoOfTags"/>
+  </opc:StructuredType>
+  <opc:StructuredType Name="Point" BaseType="ua:ExtensionObject">
+    <opc:Field Name="X" TypeName="opc:Float"/>
+    <opc:Field Name="Y" TypeName="opc:Float"/>
+  </opc:StructuredType>
+</opc:TypeDictionary>

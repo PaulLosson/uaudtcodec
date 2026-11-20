@@ -1,0 +1,21 @@
+[package]
+name = "uaudt-core"
+description = "High-performance OPC-UA structured type (UDT) codec driven by XML binary type dictionaries"
+version.workspace = true
+edition = "2024"
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version = "1.85"
+
+[dependencies]
+compact_str = "0.10.0"
+quick-xml = "0.37"
+thiserror = "2"
+
+[dev-dependencies]
+criterion = { version = "0.8.2", default-features = false, features = ["cargo_bench_support"] }
+
+[[bench]]
+name = "codec"
+harness = false
